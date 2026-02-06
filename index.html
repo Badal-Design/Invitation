@@ -33,7 +33,6 @@
     text-align: center;
     padding: 0 20px;
     text-shadow: 0 3px 8px rgba(0,0,0,0.25);
-    animation: fadeIn 1.6s ease-in-out;
   }
 
   .box {
@@ -63,7 +62,6 @@
     position: absolute;
   }
 
-  /* YES BUTTON WITH PULSE ANIMATION */
   #yesBtn {
     left: 50%;
     top: 58%;
@@ -72,6 +70,7 @@
     color: white;
     box-shadow: 0 5px 20px rgba(255,0,130,0.45);
     animation: pulseYes 1.6s infinite;
+    z-index: 10;
   }
 
   @keyframes pulseYes {
@@ -86,10 +85,14 @@
     left: 65%;
     top: 72%;
     box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-    animation: fadeIn 2s ease-in-out;
+    z-index: 9;
   }
 
-  /* Glitter effect */
+  @keyframes sparkle {
+    0% { transform: scale(0.4); opacity: 1;}
+    100% { transform: scale(1.6); opacity: 0;}
+  }
+
   .glitter {
     position: fixed;
     width: 4px;
@@ -98,11 +101,6 @@
     border-radius: 50%;
     pointer-events: none;
     animation: sparkle 1.5s linear infinite;
-  }
-
-  @keyframes sparkle {
-    0% { transform: scale(0.4); opacity: 1;}
-    100% { transform: scale(1.6); opacity: 0;}
   }
 
   @keyframes heartFloat {
@@ -136,7 +134,7 @@
   }
   setInterval(hearts, 700);
 
-  /* Glitter Effect */
+  /* Glitter */
   function glitterEffect() {
     const g = document.createElement('div');
     g.classList.add("glitter");
@@ -147,25 +145,45 @@
   }
   setInterval(glitterEffect, 180);
 
-  /* Buttons behavior */
   const busyBtn = document.getElementById('busyBtn');
-  const yesBtn = document.getElementById('yesBtn');
-  const box = document.querySelector('.box');
+  const yesBtn  = document.getElementById('yesBtn');
+  const box     = document.querySelector('.box');
 
-  function move(btn){
+  /* Prevent overlap zone */
+  const SAFE_RADIUS = 120; // bigger = more safety
+
+  function relocateRandom(btn) {
     let nx, ny;
+
     do {
       nx = Math.random() * (box.clientWidth - btn.clientWidth);
       ny = Math.random() * (box.clientHeight - btn.clientHeight);
-    } 
-    while (Math.abs(nx - yesBtn.offsetLeft) < 100 && Math.abs(ny - yesBtn.offsetTop) < 100);
+    }
+    while (
+      Math.abs(nx - yesBtn.offsetLeft) < SAFE_RADIUS &&
+      Math.abs(ny - yesBtn.offsetTop) < SAFE_RADIUS
+    );
 
     btn.style.left = nx + "px";
-    btn.style.top = ny + "px";
+    btn.style.top  = ny + "px";
   }
 
-  busyBtn.addEventListener('mouseover', ()=> move(busyBtn));
+  /* CLICK → disappear for 2 seconds */
+  busyBtn.addEventListener('click', () => {
+    busyBtn.style.opacity = "0";
+    busyBtn.style.transform = "scale(0.3)";
 
+    setTimeout(() => {
+      relocateRandom(busyBtn);
+      busyBtn.style.opacity = "1";
+      busyBtn.style.transform = "scale(1)";
+    }, 2000); // ← 2 SECONDS
+  });
+
+  /* Hover/Tap move */
+  busyBtn.addEventListener('mouseover', () => relocateRandom(busyBtn));
+
+  /* YES button */
   const sound = new Audio('https://cdn.pixabay.com/download/audio/2022/03/15/audio_7a39bb26ac.mp3?filename=correct-2-46134.mp3');
 
   yesBtn.onclick = ()=>{
